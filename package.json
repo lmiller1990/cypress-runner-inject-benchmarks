@@ -1,0 +1,16 @@
+{
+  "type": "module",
+  "name": "html",
+  "version": "1.0.0",
+  "description": "",
+  "main": "cypress_runner.js",
+  "scripts": {
+    "bench": "node index.js" 
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "puppeteer": "^15.4.0"
+  }
+}
