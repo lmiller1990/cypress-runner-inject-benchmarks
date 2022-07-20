@@ -5,12 +5,13 @@
   "description": "",
   "main": "cypress_runner.js",
   "scripts": {
-    "bench": "node index.js" 
+    "bench": "node index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "puppeteer": "^15.4.0"
+    "puppeteer": "^15.4.0",
+    "serve": "^14.0.1"
   }
 }

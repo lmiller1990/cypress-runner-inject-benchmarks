@@ -1,7 +1,11 @@
 import puppeteer from "puppeteer";
+import handler from "serve-handler";
+import http from "http";
+
+const PORT = 8000;
 
 async function visitAndInject(page) {
-  await page.goto("http://localhost:8000");
+  await page.goto(`http://localhost:${PORT}/index.html`);
   await page.waitForSelector("#bench");
   const time = await page.$eval("#bench", (div) => {
     return div.innerText;
@@ -10,7 +14,7 @@ async function visitAndInject(page) {
   return parseFloat(time);
 }
 
-(async () => {
+async function bench() {
   const browser = await puppeteer.launch({
     // headless: false,
     args: ["--shm-size=3gb"],
@@ -29,4 +33,15 @@ async function visitAndInject(page) {
   console.log(`=> Average time: ${sum / ms.length}`);
 
   await browser.close();
-})();
+}
+
+const server = http.createServer((request, response) => {
+  // You pass two more arguments for config and middleware
+  // More details here: https://github.com/vercel/serve-handler#options
+  return handler(request, response);
+});
+
+server.listen(PORT, () => {
+  console.log(`Running at http://localhost:${PORT}`);
+  bench();
+});
