@@ -18,11 +18,9 @@
         let start
         s.onload = () => {
           let end = performance.now()
-          console.log('ok', end-start)
-          resolve(end - start)
+          resolve((end - start).toFixed(0))
         }
         start = performance.now()
-        console.log(document.head)
         document.head.appendChild(s)
       })
     }

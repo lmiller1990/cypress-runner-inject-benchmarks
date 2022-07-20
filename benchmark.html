@@ -1,42 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <title></title>
-  </head>
-  <body>
-    <script>
-      function inject(src) {
-        return new Promise(resolve => {
-          const id = (Math.random()).toFixed(10)
-          s = document.createElement('script')
-          s.src = src
-          s.id = 'my-script'
-          let start
-          s.onload = () => {
-            let end = performance.now()
-            resolve(end - start)
-          }
-          document.getElementById('my-script')?.remove()
-          start = performance.now()
-          document.head.appendChild(s)
-        })
-      }
 
-      const injectMs = []
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
 
-      async function main () {
-        for (let i = 0; i < 100; i++) {
-          let time = await inject('cypress_runner.js')
-          console.log(`Time to inject & parse: ${time}ms`)
-          injectMs.push(time)
+<body>
+  <p></p>
+  <ul></ul>
+  <script>
+    function inject(src) {
+      return new Promise(resolve => {
+        const id = (Math.random()).toFixed(10)
+        s = document.createElement('script')
+        s.src = src
+        s.id = 'my-script'
+        let start
+        s.onload = () => {
+          let end = performance.now()
+          resolve((end - start).toFixed(0))
         }
-    
-        const sum = injectMs.reduce((acc, curr) => acc + curr, 0)
-        console.log(`\n--- Average time: ${sum / injectMs.length} ---`)
+        document.getElementById('my-script')?.remove()
+        start = performance.now()
+        document.head.appendChild(s)
+      })
+    }
+
+    const injectMs = []
+
+    async function main() {
+      const ul = document.body.querySelector('ul')
+      const p = document.body.querySelector('p')
+
+      for (let i = 0; i < 100; i++) {
+        let time = parseFloat(await inject('cypress_runner.js'))
+        console.log(`Time to inject & parse: ${time}ms`)
+        const li = document.createElement('li')
+        li.innerText = `${time}ms`
+        ul.appendChild(li)
+        injectMs.push(time)
       }
 
-      main()
-    </script>
-  </body>
+      const sum = injectMs.reduce((acc, curr) => acc + curr, 0)
+      const time = sum / injectMs.length
+      p.innerText = time
+    }
+
+    main()
+  </script>
+</body>
+
 </html>
