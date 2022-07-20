@@ -7,6 +7,7 @@ import http from "http";
 const PORT = 8000;
 
 const headed = process.argv.slice(2).some((x) => x.includes("--headed"));
+const devtools = process.argv.slice(2).some((x) => x.includes("--devtools"));
 
 const wait = () => {
   return new Promise((res) => setTimeout(res, 1000000));
@@ -49,6 +50,7 @@ async function visitAndInject(browser, runTitle, prevPage) {
 
 async function benchLocationReload() {
   const browser = await puppeteer.launch({
+    devtools,
     headless: !headed,
     args: ["--shm-size=3gb"],
     timeout: 1000 * 60 * 2, // 2 min
@@ -76,6 +78,7 @@ async function benchLocationReload() {
 async function benchSinglePage() {
   const browser = await puppeteer.launch({
     headless: !headed,
+    devtools,
     args: ["--shm-size=3gb"],
     timeout: 1000 * 60 * 2, // 2 min
   });
@@ -95,6 +98,7 @@ async function benchSinglePage() {
 async function bench() {
   const browser = await puppeteer.launch({
     headless: !headed,
+    devtools,
     args: ["--shm-size=3gb"],
   });
 
