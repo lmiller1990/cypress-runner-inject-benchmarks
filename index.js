@@ -47,6 +47,32 @@ async function visitAndInject(browser, runTitle, prevPage) {
   };
 }
 
+async function benchLocationReload() {
+  const browser = await puppeteer.launch({
+    headless: !headed,
+    args: ["--shm-size=3gb"],
+    timeout: 1000 * 60 * 2, // 2 min
+  });
+  const page = await browser.newPage();
+  let runs = []
+  for (let i = 0; i < 100; i++) {
+    await page.goto(`http://localhost:${PORT}/location_reload.html`);
+    const ms = await page.$eval("#bench", (p) => p.innerText);
+    runs.push(parseFloat(ms))
+    console.log(`Run #${i}: ${ms}ms`)
+    await page.evaluate(() => {
+      location.reload()
+    })
+  }
+
+  const average = runs.reduce((acc, curr) => acc + curr, 0) / runs.length;
+  await browser.close();
+
+  return {
+    time: average.toFixed(0),
+  };
+}
+
 async function benchSinglePage() {
   const browser = await puppeteer.launch({
     headless: !headed,
@@ -119,6 +145,14 @@ server.listen(PORT, async () => {
   }
 
   console.log(`${title} average (100 runs): ${singlePageBench.time}ms`);
+
+  console.log(`\n--------------------------------------------------\n`);
+  title = "location.reload() Benchmark";
+  console.log(`=== ${title} (one tab, no reload) ===\n`);
+
+  const locationReload = await benchLocationReload();
+  console.log(`${title} average (100 runs): ${locationReload.time}ms`);
+
 
   server.close();
 });
