@@ -48,6 +48,33 @@ async function visitAndInject(browser, runTitle, prevPage) {
   };
 }
 
+async function benchSetLocation() {
+  const browser = await puppeteer.launch({
+    devtools,
+    headless: !headed,
+    args: ["--shm-size=3gb"],
+    timeout: 1000 * 60 * 2, // 2 min
+  });
+  const page = await browser.newPage();
+  let runs = []
+  for (let i = 0; i < 100; i++) {
+    await page.goto(`http://localhost:${PORT}/document_location.html`);
+    const ms = await page.$eval("#bench", (p) => p.innerText);
+    runs.push(parseFloat(ms))
+    console.log(`Run #${i}: ${ms}ms`)
+    await page.evaluate(({ i, PORT }) => {
+      document.location = `http://localhost:${PORT}/document_location.html?run=${i}`
+    }, { i, PORT })
+  }
+
+  const average = runs.reduce((acc, curr) => acc + curr, 0) / runs.length;
+  await browser.close();
+
+  return {
+    time: average.toFixed(0),
+  };
+}
+
 async function benchLocationReload() {
   const browser = await puppeteer.launch({
     devtools,
@@ -156,6 +183,15 @@ server.listen(PORT, async () => {
 
   const locationReload = await benchLocationReload();
   console.log(`${title} average (100 runs): ${locationReload.time}ms`);
+
+  // document.location = ...
+
+  console.log(`\n--------------------------------------------------\n`);
+  title = "document.location Benchmark";
+  console.log(`=== ${title} (one tab, document.location = ...) ===\n`);
+
+  const documentLocation = await benchSetLocation();
+  console.log(`${title} average (100 runs): ${documentLocation.time}ms`);
 
 
   server.close();

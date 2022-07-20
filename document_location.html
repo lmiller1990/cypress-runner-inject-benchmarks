@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+</head>
+
+<body>
+  <p></p>
+  <ul></ul>
+  <script>
+    function inject(src) {
+      return new Promise(resolve => {
+        const id = (Math.random()).toFixed(10)
+        s = document.createElement('script')
+        s.src = src
+        s.id = 'my-script'
+        let start
+        s.onload = () => {
+          let end = performance.now()
+          resolve((end - start).toFixed(0))
+        }
+        document.getElementById('my-script')?.remove()
+        start = performance.now()
+        document.head.appendChild(s)
+      })
+    }
+
+    async function main() {
+      const p = document.body.querySelector('p')
+
+      let time = parseFloat(await inject('cypress_runner.js'))
+      console.log(`Time to inject & parse: ${time}ms`)
+
+      p.innerText = time
+      p.id = "bench"
+    }
+
+    main()
+  </script>
+</body>
+
+</html>
