@@ -41,7 +41,8 @@ const server = http.createServer((request, response) => {
   return handler(request, response);
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`Running at http://localhost:${PORT}`);
-  bench();
+  await bench();
+  server.close();
 });
