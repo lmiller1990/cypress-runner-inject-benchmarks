@@ -1,17 +1,40 @@
+// @ts-check
+
 import puppeteer from "puppeteer";
 import handler from "serve-handler";
 import http from "http";
 
 const PORT = 8000;
 
-async function visitAndInject(page) {
+/**
+ * @param {import('puppeteer').Browser} browser
+ * @param {String} runTitle
+ * @param {import('puppeteer').Page} prevPage
+ */
+async function visitAndInject(browser, runTitle, prevPage) {
+  const page = await browser.newPage();
   await page.goto(`http://localhost:${PORT}/index.html`);
+  await page.evaluate(({ runTitle }) => {
+    document.title = runTitle;
+  }, { runTitle });
+
+
   await page.waitForSelector("#bench");
+
+  // not present on first run
+  if (prevPage) {
+    await prevPage.close();
+  }
+
   const time = await page.$eval("#bench", (div) => {
+    // @ts-ignore
     return div.innerText;
   });
-  await page.close();
-  return parseFloat(time);
+
+  return {
+    prev: page,
+    time: parseFloat(time),
+  };
 }
 
 async function bench() {
@@ -22,10 +45,13 @@ async function bench() {
 
   const ms = [];
 
+  let prevPage;
+
   for (let i = 0; i < 100; i++) {
-    const page = await browser.newPage();
-    const time = await visitAndInject(page);
-    console.log(`Run ${i}: ${time}ms`);
+    const runTitle = `Run #${i}`
+    let { time, prev } = await visitAndInject(browser, runTitle, prevPage);
+    prevPage = prev;
+    console.log(`${runTitle}: ${time}ms`);
     ms.push(time);
   }
 
